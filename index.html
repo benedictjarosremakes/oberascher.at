@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oberascher</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Lora:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Colors */
+            --color-bg: #FAFAFA;
+            --color-surface: #F3F1ED;
+            --color-text: #2A2826;
+            --color-text-muted: #736F6A;
+            --color-accent: #C88B28;
+            --color-footer-bg: #2A2826;
+            --color-footer-text: #FAFAFA;
+
+            /* Typography */
+            --font-heading: 'Jost', sans-serif;
+            --font-body: 'Lora', serif;
+
+            /* Fluid Type Scale */
+            --text-xs: clamp(0.75rem, 1.5vw, 0.875rem);
+            --text-sm: clamp(0.875rem, 1.8vw, 1rem);
+            --text-base: clamp(1rem, 2vw, 1.125rem);
+            --text-lg: clamp(1.125rem, 2.5vw, 1.375rem);
+            --text-xl: clamp(1.375rem, 3vw, 1.75rem);
+            --text-2xl: clamp(1.75rem, 4vw, 2.5rem);
+            --text-3xl: clamp(2.25rem, 5vw, 3.5rem);
+            --text-4xl: clamp(2rem, 8vw, 5rem); /* Adjusted for mobile wrapping */
+
+            /* Spacing */
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-4: 1rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+            --space-12: 3rem;
+            --space-16: 4rem;
+            --section-padding: clamp(4rem, 10vw, 8rem);
+
+            /* Z-Index */
+            --z-base: 0;
+            --z-raised: 10;
+            --z-dropdown: 100;
+            --z-sticky: 200;
+            --z-overlay: 500;
+            --z-modal: 1000;
+            --z-toast: 2000;
+            --z-max: 9000;
+        }
+
+        /* Reset */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; font-size: 100%; }
+        body {
+            font-family: var(--font-body);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.7;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        img { display: block; max-width: 100%; height: auto; }
+        button { font: inherit; }
+        
+        /* Accessibility */
+        .skip-link {
+            position: absolute; top: -40px; left: 0; background: var(--color-accent);
+            color: #fff; padding: 8px; z-index: var(--z-max); text-decoration: none;
+            transition: top 0.2s; font-family: var(--font-heading);
+        }
+        .skip-link:focus { top: 0; }
+        :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+        /* Icons Alignment */
+        [data-lucide] {
+            display: inline-block; vertical-align: middle; flex-shrink: 0;
+            line-height: 1; pointer-events: none;
+        }
+        .icon-text { display: inline-flex; align-items: center; gap: 0.45em; }
+
+        /* Scroll Reveal */
+        .reveal {
+            opacity: 0; transform: translateY(22px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal { opacity: 1; transform: none; transition: none; }
+        }
+
+        /* Header & Navigation */
+        .site-header {
+            position: fixed; top: 0; left: 0; right: 0;
+            z-index: 1001; /* Literal number per rules */
+            background: rgba(250, 250, 250, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(42, 40, 38, 0.05);
+            transition: background 0.3s ease;
+        }
+        .header-inner {
+            max-width: 1280px; margin: 0 auto; padding: 1rem var(--space-6);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        /* Logo - Strict text only */
+        .logo {
+            display: inline-flex; align-items: center; gap: 0.75rem;
+            font-family: var(--font-heading); font-weight: 400;
+            font-size: var(--text-xl); color: var(--color-text);
+            text-decoration: none; letter-spacing: 0.15em; text-transform: uppercase;
+        }
+        
+        .desktop-nav { display: none; gap: var(--space-8); }
+        .nav-link {
+            font-family: var(--font-heading); font-weight: 500;
+            font-size: var(--text-sm); color: var(--color-text);
+            text-decoration: none; letter-spacing: 0.1em;
+            position: relative; padding: 0.5rem 0; background: none; border: none; cursor: pointer;
+            text-transform: uppercase;
+        }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 0;
+            height: 1px; background: var(--color-accent); transition: width 0.3s ease;
+        }
+        .nav-link:hover::after { width: 100%; }
+
+        /* Mobile Navigation */
+        .mobile-overlay {
+            position: fixed; inset: 0;
+            z-index: 1000; /* Literal number per rules */
+            background: var(--color-bg);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .mobile-overlay.is-open { opacity: 1; pointer-events: auto; }
+        .mobile-overlay .nav-link { font-size: var(--text-2xl); padding: 1rem 0; }
+
+        .nav-toggle {
+            position: absolute; right: 1.25rem; top: 50%; transform: translateY(-50%);
+            z-index: 1002; /* Literal number per rules */
+            background: transparent; border: none; cursor: pointer; padding: 0.5rem;
+            width: 44px; height: 44px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; gap: 6px;
+        }
+        .nav-toggle span {
+            display: block; width: 24px; height: 2px; background: var(--color-text);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-toggle.is-active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .nav-toggle.is-active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        .nav-toggle.is-active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+        @media (min-width: 769px) {
+            .desktop-nav { display: flex; }
+            .nav-toggle { display: none; pointer-events: none; }
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            color: #FAFAFA; text-align: center; padding: var(--section-padding) var(--space-6);
+            position: relative; overflow: hidden;
+        }
+        .hero-bg {
+            position: absolute; inset: 0; z-index: -1;
+            background-color: var(--color-footer-bg);
+            background-image: 
+                linear-gradient(to bottom, rgba(42, 40, 38, 0.4), rgba(42, 40, 38, 0.4)),
+                url('https://oberascher.at/spaene.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .hero-content {
+            max-width: 90vw;
+        }
+        .hero h1 {
+            font-family: var(--font-heading); font-weight: 300; font-size: var(--text-4xl);
+            letter-spacing: 0.1em; text-transform: uppercase; margin: 0;
+            word-wrap: break-word; line-height: 1.1;
+        }
+        .scroll-indicator {
+            position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%);
+            width: 1px; height: 60px; background: rgba(250, 250, 250, 0.2);
+            overflow: hidden;
+        }
+        .scroll-indicator::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+            background: #FAFAFA; animation: scrollDown 2s infinite ease-in-out;
+        }
+        @keyframes scrollDown {
+            0% { transform: translateY(-100%); }
+            50% { transform: translateY(100%); }
+            100% { transform: translateY(200%); }
+        }
+
+        /* Philosophy Section */
+        .philosophy { padding: var(--section-padding) var(--space-6); max-width: 1280px; margin: 0 auto; }
+        .philosophy-grid { display: grid; gap: var(--space-12); }
+        @media (min-width: 768px) { .philosophy-grid { grid-template-columns: 1fr 1.2fr; align-items: start; } }
+        
+        .philosophy-left { display: flex; justify-content: flex-end; }
+        .kasterl-accent {
+            width: 40px; height: 40px; opacity: 0.8;
+            background-image: url('https://oberascher.at/kasterl.svg');
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+        }
+
+        .philosophy h2 {
+            font-family: var(--font-heading); font-weight: 400; font-size: var(--text-3xl);
+            letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: var(--space-8);
+            color: var(--color-text); line-height: 1.2;
+        }
+        .philosophy p {
+            font-size: var(--text-lg); color: var(--color-text-muted);
+        }
+
+        /* Process Gallery */
+        .gallery { padding: var(--section-padding) var(--space-6); max-width: 1280px; margin: 0 auto; }
+        .gallery-grid { display: grid; gap: var(--space-6); }
+        @media (min-width: 768px) {
+            .gallery-grid { grid-template-columns: repeat(3, 1fr); align-items: center; }
+        }
+        .gallery-item {
+            background: var(--color-surface); overflow: hidden; position: relative;
+        }
+        .gallery-item-inner {
+            width: 100%; height: 100%; display: block; overflow: hidden;
+        }
+        .gallery-item-inner img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+            transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .gallery-item:hover .gallery-item-inner img { transform: scale(1.03); }
+        
+        .gallery-item:nth-child(1) { aspect-ratio: 1/1; }
+        .gallery-item:nth-child(2) { aspect-ratio: 3/4; }
+        .gallery-item:nth-child(3) { aspect-ratio: 1/1; }
+        
+        @media (min-width: 768px) {
+            .gallery-item:nth-child(2) { transform: translateY(3rem); }
+        }
+
+        /* Specialization Section */
+        .specialization { background: var(--color-surface); padding: var(--section-padding) 0; margin-top: var(--space-12); }
+        .spec-container { max-width: 1280px; margin: 0 auto; padding: 0 var(--space-6); }
+        .spec-grid { display: grid; gap: var(--space-12); }
+        @media (min-width: 768px) {
+            .spec-grid { grid-template-columns: 1fr 1fr; align-items: center; }
+            .spec-image-wrapper { margin-top: -6rem; margin-bottom: -6rem; }
+        }
+        .spec-text h2 {
+            font-family: var(--font-heading); font-weight: 400; font-size: var(--text-3xl);
+            letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: var(--space-8);
+            line-height: 1.2;
+        }
+        .spec-text p {
+            font-size: var(--text-base); color: var(--color-text-muted);
+        }
+        .spec-image-wrapper {
+            position: relative; z-index: var(--z-raised); box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+        .spec-image {
+            aspect-ratio: 4/5; width: 100%; position: relative; overflow: hidden;
+        }
+        .spec-image img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+
+        /* Footer */
+        .site-footer {
+            background: var(--color-footer-bg); color: var(--color-footer-text);
+            padding: clamp(4rem, 8vw, 7rem) var(--space-6) var(--space-8);
+            margin-top: var(--space-16);
+        }
+        .footer-grid {
+            max-width: 1280px; margin: 0 auto; display: grid; gap: var(--space-12);
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 768px) {
+            .footer-grid { grid-template-columns: 2fr 1fr 1fr; }
+        }
+        .footer-brand h3 {
+            font-family: var(--font-heading); font-size: var(--text-xl); text-transform: uppercase;
+            letter-spacing: 0.1em; margin-bottom: var(--space-4); font-weight: 500;
+        }
+        .footer-brand p { color: #A09D98; margin-bottom: var(--space-6); font-size: var(--text-sm); max-width: 300px; }
+        .footer-social { display: flex; gap: var(--space-4); }
+        .footer-social button {
+            background: transparent; border: none; color: var(--color-footer-text);
+            cursor: pointer; transition: color 0.2s ease; padding: 0;
+        }
+        .footer-social button:hover { color: var(--color-accent); }
+        
+        .footer-col h4 {
+            font-family: var(--font-heading); font-size: var(--text-sm); text-transform: uppercase;
+            letter-spacing: 0.1em; margin-bottom: var(--space-6); color: #A09D98; font-weight: 400;
+        }
+        .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: var(--space-4); }
+        .footer-col button {
+            background: transparent; border: none; color: var(--color-footer-text);
+            font-family: var(--font-body); cursor: pointer; padding: 0; text-align: left;
+            transition: color 0.2s ease; font-size: var(--text-sm);
+        }
+        .footer-col button:hover { color: var(--color-accent); }
+        .contact-item { display: flex; align-items: flex-start; gap: var(--space-2); color: #A09D98; font-size: var(--text-sm); }
+        .contact-item i { margin-top: 4px; color: var(--color-footer-text); }
+
+        .footer-bottom {
+            max-width: 1280px; margin: var(--space-16) auto 0; padding-top: var(--space-8);
+            border-top: 1px solid rgba(250, 250, 250, 0.1);
+            display: flex; flex-direction: column; gap: var(--space-4); align-items: center; text-align: center;
+        }
+        @media (min-width: 768px) {
+            .footer-bottom { flex-direction: row; justify-content: space-between; text-align: left; }
+        }
+        .footer-bottom p { font-size: var(--text-xs); color: #A09D98; margin: 0; }
+        .footer-legal-links { display: flex; gap: var(--space-6); }
+        .footer-legal-links button {
+            background: transparent; border: none; color: #A09D98; font-family: var(--font-body);
+            font-size: var(--text-xs); cursor: pointer; padding: 0; transition: color 0.2s ease;
+        }
+        .footer-legal-links button:hover { color: var(--color-footer-text); }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: var(--z-max);
+            background: rgba(42, 40, 38, 0.8); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center; padding: var(--space-4);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.is-active { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background: var(--color-bg); width: 100%; max-width: 480px;
+            padding: var(--space-12) var(--space-8); border-radius: 2px;
+            position: relative; transform: translateY(20px); transition: transform 0.3s ease;
+            text-align: center;
+        }
+        .modal-overlay.is-active .modal-card { transform: translateY(0); }
+        .modal-close {
+            position: absolute; top: 1rem; right: 1rem; background: transparent; border: none;
+            color: var(--color-text-muted); cursor: pointer; padding: 0.5rem; transition: color 0.2s;
+        }
+        .modal-close:hover { color: var(--color-accent); }
+        .modal-card h3 {
+            font-family: var(--font-heading); font-size: var(--text-2xl); font-weight: 400;
+            margin-bottom: var(--space-4); text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .modal-card p { color: var(--color-text-muted); margin-bottom: var(--space-6); }
+        .modal-card a { color: var(--color-accent); text-decoration: none; font-weight: 500; }
+        .modal-card a:hover { text-decoration: underline; }
+
+        /* Cookie Banner */
+        .cookie-banner {
+            position: fixed; bottom: var(--space-4); left: var(--space-4); right: var(--space-4);
+            z-index: var(--z-toast); background: var(--color-bg);
+            border: 1px solid rgba(42, 40, 38, 0.1); border-radius: 4px;
+            padding: var(--space-4) var(--space-6); box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transform: translateY(150%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; gap: var(--space-4);
+        }
+        .cookie-banner.is-visible { transform: translateY(0); }
+        @media (min-width: 768px) {
+            .cookie-banner {
+                bottom: var(--space-6); left: var(--space-6); right: auto; max-width: 400px;
+            }
+        }
+        .cookie-text { font-size: var(--text-sm); color: var(--color-text-muted); }
+        .cookie-actions { display: flex; gap: var(--space-4); }
+        .btn-cookie {
+            padding: 0.5rem 1rem; font-family: var(--font-heading); font-size: var(--text-xs);
+            text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; border: 1px solid;
+            transition: all 0.2s ease; background: transparent; border-radius: 2px;
+        }
+        .btn-accept { background: var(--color-text); color: var(--color-bg); border-color: var(--color-text); }
+        .btn-accept:hover { background: var(--color-accent); border-color: var(--color-accent); }
+        .btn-decline { color: var(--color-text); border-color: rgba(42, 40, 38, 0.2); }
+        .btn-decline:hover { border-color: var(--color-text); }
+
+    </style>
+</head>
+<body>
+<!-- DEMO NOTICE BANNER - benedictjaros.com -->
+<style>
+#__demo_spacer{display:block;}
+#__demo_notice,#__demo_notice *{box-sizing:border-box;margin:0;padding:0;}
+#__demo_notice{
+  position:fixed;top:0;left:0;right:0;z-index:99999;
+  background:rgba(9,9,11,.97);
+  backdrop-filter:blur(14px) saturate(160%);
+  -webkit-backdrop-filter:blur(14px) saturate(160%);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  font-family:system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+}
+#__demo_inner{
+  max-width:1280px;margin:0 auto;
+  padding:0 44px 0 18px;min-height:38px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+#__demo_dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:#f5c842;box-shadow:0 0 7px rgba(245,200,66,.55);}
+#__demo_label{color:#f5c842;font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;flex-shrink:0;}
+#__demo_divider{color:rgba(255,255,255,.15);font-size:12px;flex-shrink:0;}
+#__demo_text{color:rgba(255,255,255,.45);font-size:11.5px;line-height:1.45;flex:1 1 160px;}
+#__demo_links{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+#__demo_links a{
+  color:rgba(255,255,255,.38);font-size:11px;text-decoration:none;
+  border-bottom:1px solid rgba(255,255,255,.14);
+  transition:color .15s,border-color .15s;white-space:nowrap;
+}
+#__demo_links a:hover{color:rgba(255,255,255,.75);border-color:rgba(255,255,255,.4);}
+#__demo_link_sep{color:rgba(255,255,255,.15);font-size:10px;}
+#__demo_close{
+  position:absolute;right:0;top:0;bottom:0;width:40px;
+  background:none;border:none;cursor:pointer;
+  color:rgba(255,255,255,.28);font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  transition:color .15s;
+}
+#__demo_close:hover{color:rgba(255,255,255,.7);}
+@media(max-width:560px){
+  #__demo_inner{padding:7px 44px 7px 14px;gap:6px;}
+  #__demo_text{font-size:11px;flex:1 1 100%;order:3;}
+  #__demo_dot,#__demo_label{order:1;}
+  #__demo_divider{order:2;}
+  #__demo_links{order:4;}
+}
+</style>
+<div id="__demo_spacer"></div>
+<div id="__demo_notice" role="banner" aria-label="Demo notice">
+  <div id="__demo_inner">
+    <span id="__demo_dot"></span>
+    <span id="__demo_label">Demo</span>
+    <span id="__demo_divider">/</span>
+    <span id="__demo_text">Unofficial remake &mdash; not the real website. All content &amp; trademarks belong to their owners.</span>
+    <div id="__demo_links">
+      <a href="https://benedictjaros.com/impressum" target="_blank" rel="noopener noreferrer">Impressum</a>
+      <span id="__demo_link_sep">&middot;</span>
+      <a href="https://benedictjaros.com/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutz</a>
+    </div>
+  </div>
+  <button id="__demo_close" aria-label="Close demo notice">&#x2715;</button>
+</div>
+<script>
+(function () {
+  var spacer = document.getElementById('__demo_spacer');
+  var b = document.getElementById('__demo_notice');
+  var x = document.getElementById('__demo_close');
+  if (!b || !spacer) return;
+  function sync() { spacer.style.height = b.offsetHeight + 'px'; }
+  function hide() {
+    b.style.display = 'none'; spacer.style.height = '0';
+    try { sessionStorage.setItem('__demo_closed', '1'); } catch (e) {}
+  }
+  try { if (sessionStorage.getItem('__demo_closed')) { b.style.display = 'none'; spacer.style.height = '0'; return; } } catch (e) {}
+  sync();
+  window.addEventListener('resize', function () { if (b.style.display !== 'none') sync(); });
+  if (x) x.addEventListener('click', hide);
+}());
+</script>
+
+
+    <a href="#main" class="skip-link">Zum Inhalt springen</a>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="#" class="logo">Oberascher</a>
+            
+            <nav class="desktop-nav" aria-label="Hauptnavigation">
+                <button class="nav-link trigger-feature" data-feature="Kontakt">Kontakt</button>
+                <button class="nav-link trigger-feature" data-feature="Möbel">Möbel</button>
+                <button class="nav-link trigger-feature" data-feature="Fenster">Fenster</button>
+                <button class="nav-link trigger-feature" data-feature="Türen">Türen</button>
+            </nav>
+
+            <button class="nav-toggle" aria-expanded="false" aria-label="Menü öffnen">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <div class="mobile-overlay" aria-hidden="true">
+        <button class="nav-link trigger-feature" data-feature="Kontakt">Kontakt</button>
+        <button class="nav-link trigger-feature" data-feature="Möbel">Möbel</button>
+        <button class="nav-link trigger-feature" data-feature="Fenster">Fenster</button>
+        <button class="nav-link trigger-feature" data-feature="Türen">Türen</button>
+    </div>
+
+    <main id="main">
+        <section class="hero">
+            <div class="hero-bg"></div>
+            <div class="hero-content reveal">
+                <h1>Tischlerei Oberascher</h1>
+            </div>
+            <div class="scroll-indicator"></div>
+        </section>
+
+        <section class="philosophy">
+            <div class="philosophy-grid">
+                <div class="philosophy-left reveal">
+                    <div class="kasterl-accent" aria-hidden="true"></div>
+                </div>
+                <div class="philosophy-right reveal" style="--i:1">
+                    <h2>Lebensqualität nach Maß</h2>
+                    <p>Das ist der Anspruch von Tischlermeister Johannes Oberascher seit er den seit 1940 gegründeten Familienbetrieb in 2001 übernommen hat. Mit seinem qualifiziertem Team stehen für ihn und seine Mitarbeiter einzigartige, präzise erstellte Werkstücke im Vordergrund ihres Schaffens.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="gallery">
+            <div class="gallery-grid">
+                <div class="gallery-item reveal" style="--i:0">
+                    <div class="gallery-item-inner">
+                        <img src="https://oberascher.at/spaene.jpg" alt="Holzspäne Detail">
+                    </div>
+                </div>
+                <div class="gallery-item reveal" style="--i:1">
+                    <div class="gallery-item-inner">
+                        <img src="https://oberascher.at/besprechung.jpg" alt="Kundenbesprechung">
+                    </div>
+                </div>
+                <div class="gallery-item reveal" style="--i:2">
+                    <div class="gallery-item-inner">
+                        <img src="https://oberascher.at/branding.jpg" alt="Holz Branding">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="specialization">
+            <div class="spec-container">
+                <div class="spec-grid">
+                    <div class="spec-text reveal">
+                        <h2>Erfahrung durch Spezialisierung</h2>
+                        <p>Johannes Oberascher hat sein Wissen und seine Erfahrung bewusst gebündelt. Sein besonderes Augenmerk gilt deshalb der Produktion von Kastenfenstern, von hochwertigen Innen- und Außentüren sowie dem exklusiven Möbelinnenausbau. Die Kunden der Tischlerei Oberascher genießen einen fachmännischen und professionellen Rund-um-Service, beginnend bei der gemeinsamen Ideenfindung über die Planung, Zeichnung und Produktion bis zum Einbau. Je nach Wunsch und Bedarf können gerne auch Raumausstatter und Innenarchitekten miteinbezogen werden.</p>
+                    </div>
+                    <div class="spec-image-wrapper reveal" style="--i:1">
+                        <div class="spec-image">
+                            <img src="https://oberascher.at/schlafzimmer.jpg" alt="Exklusiver Möbelinnenausbau Schlafzimmer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>Oberascher</h3>
+                <p>Meisterhafte Handwerkskunst und maßgefertigte Lebensqualität seit 1940.</p>
+                <div class="footer-social">
+                    <button aria-label="Instagram" class="trigger-feature" data-feature="Instagram"><i data-lucide="instagram"></i></button>
+                    <button aria-label="Facebook" class="trigger-feature" data-feature="Facebook"><i data-lucide="facebook"></i></button>
+                </div>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><button class="trigger-feature" data-feature="Möbel">Möbel</button></li>
+                    <li><button class="trigger-feature" data-feature="Fenster">Fenster</button></li>
+                    <li><button class="trigger-feature" data-feature="Türen">Türen</button></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Kontakt</h4>
+                <ul>
+                    <li class="contact-item"><i data-lucide="map-pin"></i> <span>Musterstraße 1<br>5020 Salzburg</span></li>
+                    <li class="contact-item"><i data-lucide="phone"></i> <span>+43 123 456789</span></li>
+                    <li class="contact-item"><i data-lucide="mail"></i> <span>office@oberascher.at</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2026 OBERASCHER GMBH & CO KG — All original content, images & trademarks are property of their respective owners. Website rebuilt by Benedict Jaros.</p>
+            <div class="footer-legal-links">
+                <button class="trigger-legal">Impressum</button>
+                <button class="trigger-legal">Datenschutz</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Feature Placeholder Modal -->
+    <div class="modal-overlay" id="feature-modal" role="dialog" aria-modal="true" aria-labelledby="feature-modal-title">
+        <div class="modal-card">
+            <button class="modal-close" aria-label="Schließen"><i data-lucide="x"></i></button>
+            <h3 id="feature-modal-title">Feature</h3>
+            <p>This feature will be live once the website is launched and configured. Contact us in the meantime — wir freuen uns, von Ihnen zu hören.</p>
+        </div>
+    </div>
+
+    <!-- Legal Demo Modal -->
+    <div class="modal-overlay" id="legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title">
+        <div class="modal-card">
+            <button class="modal-close" aria-label="Schließen"><i data-lucide="x"></i></button>
+            <h3 id="legal-modal-title">Rechtliche Hinweise</h3>
+            <p>Diese Website ist ein Demo-Remake und wurde nicht von oder für das Unternehmen erstellt. Die Inhalte dienen ausschließlich Demonstrationszwecken. Für unsere eigenen rechtlichen Informationen:</p>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1.5rem;">
+                <a href="https://benedictjaros.com/impressum" target="_blank">Impressum</a>
+                <a href="https://benedictjaros.com/datenschutz" target="_blank">Datenschutz</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cookie Banner -->
+    <div class="cookie-banner" id="cookie-banner" role="region" aria-label="Cookie Banner">
+        <div class="cookie-text">Wir verwenden Cookies, um Ihre Erfahrung zu verbessern.</div>
+        <div class="cookie-actions">
+            <button class="btn-cookie btn-accept" id="cookie-accept">Akzeptieren</button>
+            <button class="btn-cookie btn-decline" id="cookie-decline">Ablehnen</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Icons
+            lucide.createIcons();
+
+            // Mobile Menu Toggle
+            const navToggle = document.querySelector('.nav-toggle');
+            const mobileOverlay = document.querySelector('.mobile-overlay');
+            const mobileLinks = mobileOverlay.querySelectorAll('.nav-link');
+
+            function toggleMenu() {
+                const isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
+                navToggle.setAttribute('aria-expanded', !isExpanded);
+                navToggle.classList.toggle('is-active');
+                mobileOverlay.classList.toggle('is-open');
+                mobileOverlay.setAttribute('aria-hidden', isExpanded);
+                document.body.style.overflow = isExpanded ? '' : 'hidden';
+            }
+
+            navToggle.addEventListener('click', toggleMenu);
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (mobileOverlay.classList.contains('is-open')) toggleMenu();
+                });
+            });
+
+            // Scroll Reveal
+            const revealElements = document.querySelectorAll('.reveal');
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        revealObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12, rootMargin: '0px 0px -50px 0px' });
+
+            revealElements.forEach(el => revealObserver.observe(el));
+
+            // Modals Logic
+            const featureModal = document.getElementById('feature-modal');
+            const featureTitle = document.getElementById('feature-modal-title');
+            const legalModal = document.getElementById('legal-modal');
+            
+            function openModal(modal) {
+                modal.classList.add('is-active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeModal(modal) {
+                modal.classList.remove('is-active');
+                document.body.style.overflow = '';
+            }
+
+            // Feature Triggers
+            document.querySelectorAll('.trigger-feature').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const featureName = btn.getAttribute('data-feature');
+                    featureTitle.textContent = featureName;
+                    openModal(featureModal);
+                });
+            });
+
+            // Legal Triggers
+            document.querySelectorAll('.trigger-legal').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openModal(legalModal);
+                });
+            });
+
+            // Close Modals
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    closeModal(btn.closest('.modal-overlay'));
+                });
+            });
+
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) closeModal(overlay);
+                });
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (mobileOverlay.classList.contains('is-open')) toggleMenu();
+                    document.querySelectorAll('.modal-overlay.is-active').forEach(closeModal);
+                }
+            });
+
+            // Cookie Banner
+            const cookieBanner = document.getElementById('cookie-banner');
+            const btnAccept = document.getElementById('cookie-accept');
+            const btnDecline = document.getElementById('cookie-decline');
+
+            if (!localStorage.getItem('cookie_consent')) {
+                setTimeout(() => cookieBanner.classList.add('is-visible'), 1000);
+            }
+
+            function handleCookie(choice) {
+                localStorage.setItem('cookie_consent', choice);
+                cookieBanner.classList.remove('is-visible');
+            }
+
+            btnAccept.addEventListener('click', () => handleCookie('accepted'));
+            btnDecline.addEventListener('click', () => handleCookie('declined'));
+        });
+    </script>
+</body>
+</html>
